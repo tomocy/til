@@ -1,0 +1,1 @@
+`Caller(skip int)` はskipしたあとのプログラムカウンターを取得する  
