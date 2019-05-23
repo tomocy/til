@@ -19,3 +19,20 @@ type Fooer interface {
 なぜならFooインターフェイスはfoo()ではなくfoo.foo()を要求しているからである  
 
 これは外部パッケージで独自の実装を持った構造体を受け付けないようにすることに使える  
+
+Alias declarationsとは既存のtypeに別の名前をつけることである。
+文法は以下である
+```go
+type After = Before
+```
+既存のAPIを新しくする場合
+新しい機能の追加、古いものから新しい機能を使用するよう修正、古い機能を削除
+を行う必要がある
+Goでは以下のようにすることで
+後方互換性を保ちながらリファクタリングをすることができる
+```go
+var Old = new.New
+const Old = new.New
+func Old() { new.New() }
+type Old = new.New
+```
