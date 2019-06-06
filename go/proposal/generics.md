@@ -55,8 +55,91 @@ sumInts := Sum(int)
 var xs []int
 sum := sumInts(xs)
 ```
-The call with type arguments can be ommitted when they can be inferred from values.
+The call with type arguments can be ommitted when they can be inferred from input values. If you provide untyped contants, the default types of the values are used.
 ```go
 var xs []int
 sum := Sum(xs)
+```
+Parameterized type can be compiled.
+Parameterized type can have methods, and the receiver type of a method must list the type parameters without `type` or contracts.
+```go
+type Vector(type Element) []Element
+
+type v Vector(int)
+
+func (v *Vector(Element)) Push(elem Element) {
+    *v = append(*v, elem)
+}
+```
+Parameterized types can refer themselves in cases where the types can ordinally refer to themselves, but they cannot in cases where they cannot.
+```go
+// This is OK because the type of List.next *List(Element) can refer to List(Element)
+type List(type Element) struct {
+    next *List(Element)
+    value Element
+}
+
+// This is invalid because type of Tree.Children *Tree(Right, Left) cannot refer to Tree(Left, Right).
+// This restriction aviods infinite recursions of type inspection.
+type Tree(type Left, Right) struct {
+    Children *Tree(Right, Left)
+}
+```
+
+contracts may embed another contracts.
+```go
+contract stringPrinter(x X) {
+    stringer(x)
+    x.Print()
+}
+
+contract stringer(x X) {
+    var s string = x.String()
+}
+```
+contract check mainly about type. So if you wan to check that type X has method `Equal(X) bool`, there is no need to take two arguments of X.
+```go
+// This is enough.
+contract equalable(x X) {
+    var isEqual bool = x.Equal(x)
+}
+
+// This is not neccesarry.
+contract equable(x, y X) {
+    var isEqual bool = x.Equal(y)
+}
+```
+It might be hard to see how different codes using contract and using interface. The benefit of contract is that it can ensure not only methods, but alos concreate types. The exmple contract below proves that the elements of `[]Node` and `[]Edge` are `*Vertex` and `*FromTo`, ensuring that those types have required methods.
+```go
+func New(type Node, Edge Grapher)(nodes []Node) *Graph(Node, Edge) { ... }
+
+type Graph(type Node, Edge Grapher) struct { ... }
+
+func (g *Graph(Node, Edge)) ShortestPath(from, to Node) []Edge { ... }
+
+contract Grapher(n Node, e Edge) {
+    var _ []Edge = n.Edges()
+    var _, _ []Node = e.Nodes()
+}
+
+type Vertex struct { ... }
+
+func (v *Vertext) Edges() []*FromTo { ... } 
+
+type FromTo struct { ... }
+
+func (ft *FromTo) Nodes() (*Vertex, *Vertex) { ... }
+```
+```go
+graph := New(*Vertex, *FromTo)([]*Vertex{ ... })
+```
+
+Type inference is done without regard to contract. The check that the types implement contracts is done after typp inference.
+
+The parser does not know whether it is seeing type conversion or composite literal. So to avoid this ambiguity the parser always parse `[]T(v1)` as type convertion, and the composite literal with generic types should always b `[](T(v2))`
+```go
+// This is always type convertion to []T from v1
+x1 := []T(v1)
+// This is always composite literal of slice of T 
+x2 := [](T(v2)){}
 ```
