@@ -16,3 +16,47 @@
 > Polymorphism in Go must fit smoothly into the surrounding language, without awkward special cases and without exposing implementation details. For example, it would not be acceptable to limit type parameters to those whose machine representation is a single pointer or single word. As another example, once the general Keys(map[K]V) []K function contemplated above has been instantiated with K = int and V = string, it must be treated semantically as equivalent to a hand-written non-generic function. In particular it must be assignable to a variable of type func(map[int]string) []int.
 
 > Polymorphism in Go should be implementable both at compile time (by repeated specialized compilation, as in C++) and at run time, so that the decision about implementation strategy can be left as a decision for the compiler and treated like any other compiler optimization. This flexibility would address the generic dilemma we’ve discussed in the past.
+
+### Draft Design
+type parameter
+```go
+type List(type T) []T
+func Keys(type K, V)(ms map[K]V) []K
+```
+contract
+```go
+contract Equal(t T) {
+    t == t
+}
+```
+example declaration
+```go
+contract Addable(t T) {
+    t + t
+}
+
+func Sum(type T AdDable)(ts T) T {
+    var sum T
+    for _, t := range ts {
+        sum += t
+    }
+
+    return sum
+}
+```
+example usage
+```go
+var xs []int
+sum := Sum(int)(xs)
+```
+The two invocations can be splited.
+```go
+sumInts := Sum(int)
+var xs []int
+sum := sumInts(xs)
+```
+The call with type arguments can be ommitted when they can be inferred from values.
+```go
+var xs []int
+sum := Sum(xs)
+```
