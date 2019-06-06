@@ -143,3 +143,12 @@ x1 := []T(v1)
 // This is always composite literal of slice of T 
 x2 := [](T(v2)){}
 ```
+
+一旦インスタンス化したものは
+ジェネリックではない型を持つ
+つまり`reflect.Type.String`は
+具体的な型を返すことになる
+
+contractで戻り値があるメソッド求めるとき
+`:=`より`var`を使用する
+何故なら`var`は戻り値の型についても要求できるから
